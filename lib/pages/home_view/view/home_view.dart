@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -19,70 +20,60 @@ class _HomeViewState extends State<HomeView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   Permission permission = Permission.storage;
 
-  ReceivePort receivePort = ReceivePort();
-  int progressvalue = 0;
-  @override
-  void initState() {
-    IsolateNameServer.registerPortWithName(
-        receivePort.sendPort, "donwloading file");
-    receivePort.listen((message) {
-      setState(() {
-        progressvalue = message;
-      });
-    });
-    FlutterDownloader.registerCallback(downloadCallBack);
-    // TODO: implement initState
-    super.initState();
-  }
-
-  static downloadCallBack(id, status, progress) {
-    SendPort? sendPort = IsolateNameServer.lookupPortByName("downloading");
-    sendPort!.send(progress);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConst.kWhiteColor,
-      key: _scaffoldKey,
-      drawer: Container(
-        height: 800,
-        color: Colors.amber,
-        width: 300.h,
-        alignment: Alignment.center,
-        child: const Text("Salom"),
-      ),
-      appBar: AppBar(
-        backgroundColor: ColorConst.kTransparentColor,
-        leading: Container(),
-        elevation: 0.0,
-        actions: [
-          GestureDetector(
-            onTap: () {
-              _scaffoldKey.currentState?.openDrawer();
-            },
-            child: Image.asset("assets/images/menu.png"),
-          )
-        ],
-      ),
-      body: Container(
-        height: 800,
-        width: 385,
-        // color: Colors.grey,
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: Column(
-          children: [
-            SizedBox(
-              height: 30.h,
-            ),
-            image(),
-            space(),
-            title(),
-            space(),
-            info(),
-            space(),
-            downloadButton(),
-          ],
+        backgroundColor: ColorConst.kWhiteColor,
+        key: _scaffoldKey,
+        appBar: AppBar(
+          elevation: 0.0,
+          backgroundColor: ColorConst.kTransparentColor,
+        ),
+        body: Container(
+          height: 800,
+          width: 385,
+          // color: Colors.grey,
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          child: Column(
+            children: [
+              SizedBox(
+                height: 30.h,
+              ),
+              image(),
+              space(),
+              title(),
+              space(),
+              info(),
+              space(),
+              downloadButton(),
+            ],
+          ),
+        ),
+        bottomNavigationBar: Container(
+          height: 60.h,
+          child: Row(
+            children: [
+              buttons(child: Icon(Icons.home), index: 1),
+              buttons(child: Icon(Icons.cast_for_education), index: 2),
+              buttons(child: Icon(Icons.work), index: 3),
+              buttons(child: Icon(Icons.person_2_outlined), index: 4)
+            ],
+          ),
+        ));
+  }
+
+  Expanded buttons({required Widget child, required int index}) {
+    return Expanded(
+      child: InkWell(
+        splashColor: Colors.red,
+        onTap: () {
+        
+          debugPrint(index.toString());
+        },
+        child: SizedBox(
+          height: 100,
+          width: 100,
+          child: child,
         ),
       ),
     );
@@ -153,14 +144,6 @@ class _HomeViewState extends State<HomeView> {
       ),
       onPressed: () async {
         debugPrint("start");
-        final directory = await getApplicationDocumentsDirectory();
-        final taskId = await FlutterDownloader.enqueue(
-          url: 'assets/pdf/NodirbekRasuljonov.pdf',
-          savedDir: directory.path,
-          fileName: 'NodirbekRasuljonov.pdf',
-          showNotification: true,
-          openFileFromNotification: true,
-        );
         debugPrint("finish");
       },
       child: Text(
@@ -173,4 +156,9 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
   }
+}
+
+Future downloadFile(String url, String name) async {
+  final appStorage = await getApplicationDocumentsDirectory();
+  final file = File("${appStorage.path}/$name");
 }
